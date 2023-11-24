@@ -12,6 +12,7 @@ geopandas = "*"
 ipykernel = "*"
 opencv-python = "*"
 gdal = "==3.6.2"
+fastapi = "*"
 
 [dev-packages]
 ipykernel = "*"

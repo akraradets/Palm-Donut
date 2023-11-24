@@ -46,8 +46,10 @@ def calculate_donut_buffer(buffer_item:tuple, ndvi_path:str, shape_path:str,
     geo_shape.total_bounds[3] < ndvi_image.transform[5] + ndvi_image.shape[0] * ndvi_image.transform[4]:
         raise ValueError(f"The geo_shape and ndvi_image do not intersect.")
 
-    for idx, geo in geo_shape.iterrows():
-        index = geo['MainID'] if 'MainID' in geo.keys() else idx
+    if('MainID' in geo_shape.keys()):
+        geo_shape.set_index('MainID',inplace=True)
+
+    for index, geo in geo_shape.iterrows():
         # Create buffer around point
         # buffer_string = ""
         if(isinstance(buffer_distance, tuple)):
