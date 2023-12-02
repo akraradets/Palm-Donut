@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Images and Shapefiles</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="main.js"></script>
+</head>
+
+<style>
+    body {
+        background-color: #F0F6F6;
+        color: #333;
+        font-family: Arial, sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: #333;
+        font-weight: bold;
+    }
+
+    h1 {
+        font-size: 36px;
+        margin: 30px 0;
+        text-align: center;
+    }
+
+    h2 {
+        font-size: 24px;
+        margin: 20px 0;
+    }
+
+    label {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    input[type="file"] {
+        margin-bottom: 10px;
+    }
+
+    select,
+    input[type="number"] {
+        width: 25%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    input[type="submit"] {
+        background-color: #3CB371;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #2E8B57;
+    }
+
+    #manual-buffer,
+    #file-buffer {
+        background-color: #F0F6F6;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    #manual-buffer {
+        display: none;
+    }
+</style>
+
+<body>
+    <h1>Oil palm trees health classification using NDVI from UAV images</h1>
+    <br><br>
+    <h2>1. Upload UAV Images (TIFF or JPG)</h2>
+    <form id="image-form">
+        <input type="file" name="image-file" id="image-file">
+        <input type="submit" value="Upload">
+    </form>
+    <br>
+
+    <h2>2. Upload Shapefile</h2>
+    <form id="shapefile-form">
+        <input type="file" name="shapefile-file" id="shapefile-file">
+        <input type="submit" value="Upload">
+    </form>
+    <br>
+    <h2>3. Buffer Distance</h2>
+    <form id="buffer-form">
+        <label for="buffer-type">Select Buffer Distance Type:</label>
+        <select name="buffer-type" id="buffer-type">
+            <option value="manual">Manually Input Number</option>
+            <option value="file">Upload from File</option>
+        </select>
+        <div id="manual-buffer">
+            <label for="buffer-distance">Enter Buffer Distance </label>
+            <input type="number" name="buffer-distance" id="buffer-distance">
+        </div>
+        <div id="file-buffer" style="display: none;">
+            <label for="file-upload">Upload CSV or Excel File </label>
+            <input type="file" name="file-upload" id="file-upload">
+            <br>
+            <label for="tree-id-column">Tree ID Column </label>
+            <select name="tree-id-column" id="tree-id-column"></select>
+            <br>
+            <label for="buffer-column">Buffer Distance Column </label>
+            <select name="buffer-column" id="buffer-column"></select>
+        </div>
+        <input type="submit" value="Process">
+    </form>
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // show/hide buffer distance inputs based on selected buffer type
+            $('#buffer-type').on('change', function () {
+                if ($(this).val() == 'manual') {
+                    $('#manual-buffer').show();
+                    $('#file-buffer').hide();
+                } else {
+                    $('#manual-buffer').hide();
+                    $('#file-buffer').show();
+                }
+            });
+            // show manual buffer distance input by default
+            $('#manual-buffer').show();
+            $('#file-buffer').hide();
+
+            // populate tree ID and buffer columns based on uploaded file headers
+            $('#file-upload').on('change', function () {
+                var file = $(this)[0].files[0];
+                var reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = function () {
+                    var csv = reader.result;
+                    var rows = csv.split('\n');
+                    var headerRow = rows[0].split(',');
+                    $('#tree-id-column').empty();
+                    $('#buffer-column').empty();
+                    for (var i = 0; i < headerRow.length; i++) {
+                        $('#tree-id-column').append($('<option>').text(headerRow[i]).attr('value', i));
+                        $('#buffer-column').append($('<option>').text(headerRow[i]).attr('value', i));
+                    }
+                };
+            });
+
+            // submit form data to server
+            $('#buffer-form').on('submit', function (event) {
+                event.preventDefault();
+                var formData = new FormData($(this)[0]);
+                $.ajax({
+                    url: 'process.php',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        alert('Buffer distance submitted successfully!');
+                        // clear form inputs
+                        $('#buffer-form')[0].reset();
+                        $('#manual-buffer').show();
+                        $('#file-buffer').hide();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('Error submitting buffer distance: ' + errorThrown);
+                    }
+                });
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>

@@ -83,7 +83,7 @@ def get_X(index:str, buffer_names:list) -> pd.DataFrame:
     return X
 
 
-def predict_health(buffer:float, shape_path:str, model_path:str):
+def predict_health(buffer:float, shape_path:str, model_path:str) -> str:
     output_path = os.path.split(shape_path)[0]
     buffer_dict = gen_buffer_dict(buffer=buffer)
     geo_shape = gpd.read_file(shape_path)
@@ -98,10 +98,13 @@ def predict_health(buffer:float, shape_path:str, model_path:str):
         # Healthy 0
         # Unhealthy 1
         predict = model.predict(X[model.feature_names_in_])
-        health = 'Healthy' if predict == 0 else 'Unhealth'
+        health = 'Healthy' if predict == 0 else 'Unhealthy'
         geo_shape.loc[index, 'health'] = health
 
-    geo_shape.to_csv(os.path.join(output_path,'result.csv'))
+    result_path = os.path.join("/root/public",'result.csv')
+    geo_shape.to_csv(result_path)
+    return 'result.csv'
+
 
 if __name__ == "__main__":
     buffer = 5.5

@@ -13,6 +13,8 @@ ipykernel = "*"
 opencv-python = "*"
 gdal = "==3.6.2"
 fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+python-multipart = "*"
 
 [dev-packages]
 ipykernel = "*"

@@ -11,7 +11,12 @@ services:
       - ./model:/root/model
       - vscode-server:/root/.vscode-server
     ports:
+      - 9001:80
+  web:
+    image: httpd:2.4.58-bookworm
+    volumes:
+      - ./web:/usr/local/apache2/htdocs/
+    ports:
       - 9000:80
-
 volumes:
   vscode-server:
