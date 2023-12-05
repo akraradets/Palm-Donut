@@ -1,16 +1,33 @@
 version: '3.9'
 services:
   web:
-    # command: pipenv run python manage.py runserver 0.0.0.0:80
+    command: pipenv run python manage.py runserver 0.0.0.0:80
     image: akraradets/donut-web:v0.0.1
     build:
       context: .
       dockerfile: .Dockerfile
     volumes:
       - ./project:/root/project
-      - vscode-web:/root/.vscode-server
-    ports:
-      - 9000:80
+      # - vscode-web:/root/.vscode-server
+    labels:
+      # Allow Traefik to talk with your service
+      - traefik.enable=true
+      # Tell Traefik to use port 80
+      - traefik.http.services.web-donut.loadbalancer.server.port=80
+      # This config you domain name. By default, your subdomain is web-donut
+      # If you which to change the subdomain name, you uncomment the below configuration
+      - traefik.http.routers.web-donut.rule=Host(`donut.localhost`)
+      # Below is for enable SSL.
+      - traefik.http.routers.web-donut.tls=true
+      - traefik.http.routers.web-donut.tls.certresolver=production
+      - traefik.http.routers.web-donut.entrypoints=websecure
+    # This define network. You would need to keep it like this.
+    networks:
+      - default
+      - traefik_default
 
-volumes:
-  vscode-web:
+# Keep it like this too.
+networks:
+  default:
+  traefik_default:
+    external: true
