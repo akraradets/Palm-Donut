@@ -113,6 +113,8 @@ def calculate_donut(request):
               buffer_path=buffer_path, 
               output_path=output_path)
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())
         return index(request=request, error=str(e))
 
     return redirect("index")
@@ -140,8 +142,8 @@ def _extract_zip(zip_path, destination) -> str:
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(destination)
     from glob import glob
-    zip_name = os.path.splitext(os.path.split(zip_path)[1])[0]
-    target = os.path.join(destination, zip_name)
+    # zip_name = os.path.splitext(os.path.split(zip_path)[1])[0]
+    target = os.path.join(destination)
     shape_file = glob(pathname=f"{target}/*.shp")[0]
     return shape_file
 
