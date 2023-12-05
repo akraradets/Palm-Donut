@@ -7,12 +7,38 @@ from histrogram import predict_health
 from starlette.responses import FileResponse 
 from fastapi.staticfiles import StaticFiles
 
+from fastapi_sessions.frontends.implementations import SessionCookie, CookieParameters
+
+cookie_params = CookieParameters()
+
+# Uses UUID
+cookie = SessionCookie(
+    cookie_name="cookie",
+    identifier="general_verifier",
+    auto_error=True,
+    secret_key="DONOTUSE",
+    cookie_params=cookie_params,
+)
+
+import os
+
 app = FastAPI()
-app.mount("/public", StaticFiles(directory="/root/public"), name="public")
+# create public folder
+public_path = "/root/public"
+if(os.path.exists(public_path) == False):
+    os.makedirs(public_path)
+app.mount("/public", StaticFiles(directory=public_path), name="public")
 
 @app.get("/")
-async def read_index():
-    return FileResponse('ui/index.html')
+async def get_index():
+    response = FileResponse('ui/index.html')
+    response.set_cookie(key="fakesession", value="fake-cookie-session-value")
+    return response
+
+@app.get("/cookie")
+def get_cookie():
+    cookie = Cookie()
+    return {"cookie": cookie}
 
 class TestData(BaseModel):
     data: str

@@ -2,3 +2,4 @@ __pycache__
 data
 model
 .DS_Store
+project/db.sqlite3

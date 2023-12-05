@@ -1,22 +1,16 @@
 version: '3.9'
 services:
-  api:
-    image: akraradets/donut-api:v0.0.1
+  web:
+    # command: pipenv run python manage.py runserver 0.0.0.0:80
+    image: akraradets/donut-web:v0.0.1
     build:
       context: .
       dockerfile: .Dockerfile
     volumes:
       - ./project:/root/project
-      - ./data:/root/data
-      - ./model:/root/model
-      - vscode-server:/root/.vscode-server
-    ports:
-      - 9001:80
-  web:
-    image: httpd:2.4.58-bookworm
-    volumes:
-      - ./web:/usr/local/apache2/htdocs/
+      - vscode-web:/root/.vscode-server
     ports:
       - 9000:80
+
 volumes:
-  vscode-server:
+  vscode-web:

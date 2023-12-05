@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+rasterio = "==1.3.9"
+pandas = "*"
+matplotlib = "*"
+scikit-learn = "*"
+geopandas = "*"
+ipykernel = "*"
+opencv-python = "*"
+gdal = "==3.6.2"
+fastapi = "*"
+uvicorn = {extras = ["standard"] }
+python-multipart = "*"
+fastapi-sessions = "*"
+pyramid = "*"
+waitress = "*"
+
+[dev-packages]
+ipykernel = "*"
+
+[requires]
+python_version = "3.10"
