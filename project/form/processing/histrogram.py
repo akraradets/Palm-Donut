@@ -5,6 +5,8 @@ import rasterio
 import numpy as np
 import pickle
 from sklearn.base import ClassifierMixin
+from datetime import datetime
+from .donut import gen_buffer_dict
 
 import os 
 
@@ -42,24 +44,24 @@ def get_histogram(path:str) -> list[float]:
 
     return hists
 
-def gen_buffer_dict(buffer:float) -> dict:
-    import warnings
-    lower_threshold = 3
-    upper_threshold = 8
-    upper_limit = 10
-    if(buffer <= lower_threshold):
-        raise ValueError(f"Buffer can not be less than {lower_threshold}. {buffer=}")
-    elif(buffer > upper_threshold):
-        raise ValueError(f"Buffer should not be grater or equal than {upper_threshold}. {buffer=}")
+# def gen_buffer_dict(buffer:float) -> dict:
+#     import warnings
+#     lower_threshold = 3
+#     upper_threshold = 8
+#     upper_limit = 10
+#     if(buffer <= lower_threshold):
+#         raise ValueError(f"Buffer can not be less than {lower_threshold}. {buffer=}")
+#     elif(buffer > upper_threshold):
+#         raise ValueError(f"Buffer should not be grater or equal than {upper_threshold}. {buffer=}")
 
-    buffer_dict = {
-        "circle_s": 2,
-        "circle_m": buffer - 2,
-        "circle_l": buffer,
-        "donut_o": (buffer, buffer - 2),
-        "donut_i": (buffer - 2, 2),
-    }
-    return buffer_dict
+#     buffer_dict = {
+#         "circle_s": 2,
+#         "circle_m": buffer - 2,
+#         "circle_l": buffer,
+#         "donut_o": (buffer, buffer - 2),
+#         "donut_i": (buffer - 2, 2),
+#     }
+#     return buffer_dict
 
 def get_X(index:str, buffer_names:list, buffer_path:str) -> pd.DataFrame:
     hists = []
@@ -103,8 +105,8 @@ def predict_health(buffer:float, shape_path:str, model_path:str, buffer_path:str
         geo_shape.loc[index, 'health'] = health
         geo_shape.loc[index, 'x'] = geo.geometry.x
         geo_shape.loc[index, 'y'] = geo.geometry.y
-
-    result_path = os.path.join(output_path,'result.csv')
+    dt = datetime.now().strftime("%Y%m%d-%H%M%S")
+    result_path = os.path.join(output_path,f'result-{dt}.csv')
     if(os.path.exists(output_path) == False):
         os.makedirs(output_path)
     geo_shape.to_csv(result_path)

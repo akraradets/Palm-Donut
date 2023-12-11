@@ -103,10 +103,17 @@
                     <input class="form-control" type="file" name="ndvi" id="ndvi" required>
                 </div>
                 <input class="btn btn-primary" type="submit" value="Upload NDVI">
+                {% if ndvi_filename != "" %}
                 <div class="row mb-3">
                     <label>Uploaded file:</label>
-                    <span>{{ ndvi_filename }}</span>
+                    <span>
+                        <a type="button" class="btn btn-danger" href="/remove-ndvi">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                        {{ ndvi_filename }}
+                    </span>
                 </div>
+                {% endif %}
             </form>
         </div>
 
@@ -118,10 +125,17 @@
                     <input class="form-control" type="file" name="shape" id="shape" required>
                 </div>
                 <input class="btn btn-primary" type="submit" value="Upload Shape">
+                {% if shape_filename != "" %}
                 <div class="row mb-3">
                     <label>Uploaded file:</label>
-                    <span>{{ shape_filename }}</span>
+                    <span>
+                        <a type="button" class="btn btn-danger" href="/remove-shape">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                        {{ shape_filename }}
+                    </span>
                 </div>
+                {% endif %}
             </form>
         </div>
 
@@ -135,13 +149,20 @@
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="buffer-distance" class="form-label">3. Buffer Distance</label>
-                    <input type="text" class="form-control" name="buffer-distance" id="buffer-distance" placeholder="3 < buffer <= 8" required>
+                    <input type="text" class="form-control" name="buffer-distance" id="buffer-distance" placeholder="5 <= buffer <= 8" required>
                 </div>
                 <input class="btn btn-primary" type="submit" value="Calculate">
                 {% if output_filename != "" %}
                 <div class="row mb-3">
                     <label>Result file:</label>
-                    <p>Click to download <i class="fa-solid fa-arrow-right"></i> <a href="/download-output">{{ output_filename }}</a></p>
+                    {% for filename in output_filename %}
+                        <p>
+                            <a type="button" class="btn btn-danger" href="/remove-output?name={{filename}}">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                            <a href="/download-output?name={{filename}}">{{ filename }}</a>
+                        </p>
+                    {% endfor %}
                 </div>
                 {% endif %}
             </form>
@@ -149,6 +170,14 @@
         
         <!-- <a href="{% static 'a.txt' %}">link</a>
         <img src="{% static 'example.png' %}" alt="Flowers in Chania"> -->
+
+        <div class="container d-flex justify-content-end">
+            <a type="button" class="btn btn-danger" href="/clear-session">
+                <i class="fa-solid fa-trash"></i>
+                Clear All files
+            </a>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

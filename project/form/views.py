@@ -26,11 +26,13 @@ def index(request, error:str=""):
     else:
         shape_filename = ""
 
-    output_filename = glob(f"{base}/output/*.csv")
-    if(len(output_filename) > 0):
-        output_filename = os.path.split(output_filename[0])[1]
-    else:
-        output_filename = ""
+    output_filepath = glob(f"{base}/output/*.csv")
+    output_filename:list = []
+    if(len(output_filepath) > 0):
+        for filepath in output_filepath:
+            output_filename.append( os.path.split(filepath)[1] )
+
+    output_filename.sort()
 
     return render(request=request, 
                 template_name="index.html", 
@@ -42,14 +44,20 @@ def index(request, error:str=""):
                     }
                 )
 
+def clear_session(request):
+    base = _get_storage_path(request=request)
+    shutil.rmtree(base)
+    return redirect('index')
+
 def download_output(request):
     import mimetypes
     base = _get_storage_path(request=request)
-    output_filename = glob(f"{base}/output/*.csv")
+    filename = request.GET['name']
+    output_filename = glob(f"{base}/output/{filename}")
     if(len(output_filename) > 0):
         output_filename = output_filename[0]
     else:
-        return index(request=request, error="output file not found.")
+        return index(request=request, error=f"output file {filename} not found.")
 
     fl = open(output_filename, 'r')
     mime_type, _ = mimetypes.guess_type(output_filename)
@@ -57,6 +65,17 @@ def download_output(request):
     response['Content-Disposition'] = "attachment; filename=%s" % os.path.split(output_filename)[1]
     return response
 
+def remove_output(request):
+    filename = request.GET['name']
+    base = _get_storage_path(request=request)
+    output_filename = glob(f"{base}/output/{filename}")
+
+    if(len(output_filename) > 0):
+        os.remove(output_filename[0])
+    else:
+        return index(request=request, error=f"output file {filename} not found.")
+    
+    return redirect('index')
 
 def upload_ndvi(request):
     ndvi_file = request.FILES["ndvi"]
@@ -73,6 +92,15 @@ def upload_ndvi(request):
             destination.write(chunk)
     return redirect('index')
 
+def remove_ndvi(request):
+    base = _get_storage_path(request=request)
+    base = os.path.join(base,"ndvi")
+    if(os.path.exists(base)):
+        shutil.rmtree(base, ignore_errors=True)
+    os.makedirs(base)
+    return redirect('index')
+
+
 def upload_shape(request):
     ndvi_file = request.FILES["shape"]
     base = _get_storage_path(request=request)
@@ -86,6 +114,14 @@ def upload_shape(request):
     with open(path, "wb+") as destination:
         for chunk in ndvi_file.chunks():
             destination.write(chunk)
+    return redirect('index')
+
+def remove_shape(request):
+    base = _get_storage_path(request=request)
+    base = os.path.join(base,"shape")
+    if(os.path.exists(base)):
+        shutil.rmtree(base, ignore_errors=True)
+    os.makedirs(base)
     return redirect('index')
 
 def calculate_donut(request):
@@ -106,6 +142,8 @@ def calculate_donut(request):
         buffer_distance:float = float(request.POST['buffer-distance'])
         shape_file = _extract_zip(shape_file_zip, os.path.join(base, "shape"))
         buffer_path = os.path.join(base, "buffer")
+        if(os.path.exists(buffer_path)):
+            shutil.rmtree(buffer_path)
         output_path = os.path.join(base, "output")
         result_path = _work(buffer_distance=buffer_distance, 
               shape_path=shape_file, 
