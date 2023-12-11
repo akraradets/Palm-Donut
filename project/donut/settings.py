@@ -25,9 +25,6 @@ SECRET_KEY = 'django-insecure-re7ut74@#rjs&i2h4-4w@h7cq=*1vffjhe!en-v*9wa@wcw!tu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -125,4 +122,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
-CSRF_TRUSTED_ORIGINS = ['https://donut.localhost']
+CSRF_TRUSTED_ORIGINS = ['https://donut.localhost','https://donut.kunnaree.duckdns.org']
+ALLOWED_HOSTS = ['donut.kunnaree.duckdns.org']
