@@ -59,7 +59,11 @@ def calculate_donut_buffer(buffer_item:tuple, ndvi_path:str, shape_path:str,
             # buffer_string = f"{buffer_distance}"
 
         # Mask image with buffer
-        out_image, out_transform = mask(dataset=ndvi_image, shapes=[buffered], nodata=-999, crop=True)
+        try:
+            out_image, out_transform = mask(dataset=ndvi_image, shapes=[buffered], nodata=-999, crop=True)
+        except Exception as e:
+            print(f"{index=} {geo=} {buffer_item=}")
+            raise e
         out_image = np.array(out_image, dtype=np.float32)
 
         # Get output window based on buffer
@@ -86,10 +90,10 @@ def calculate_donut_buffer(buffer_item:tuple, ndvi_path:str, shape_path:str,
 
 def gen_buffer_dict(buffer:float) -> dict:
     import warnings
-    lower_threshold = 3
+    lower_threshold = 5
     upper_threshold = 8
     upper_limit = 10
-    if(buffer <= lower_threshold):
+    if(buffer < lower_threshold):
         raise ValueError(f"Buffer can not be less than {lower_threshold}. {buffer=}")
     elif(buffer > upper_threshold):
         raise ValueError(f"Buffer should not be grater or equal than {upper_threshold}. {buffer=}")
