@@ -1,5 +1,7 @@
 __pycache__
 data
-model
+project/form/processing/model/*
+project_api/model
 .DS_Store
 project/db.sqlite3
+!.keeps

@@ -123,4 +123,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 CSRF_TRUSTED_ORIGINS = ['https://donut.localhost','https://donut.kunnaree.duckdns.org']
-ALLOWED_HOSTS = ['donut.kunnaree.duckdns.org']
+ALLOWED_HOSTS = ['donut.localhost','donut.kunnaree.duckdns.org']

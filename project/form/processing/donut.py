@@ -36,6 +36,7 @@ def calculate_donut_buffer(buffer_item:tuple, ndvi_path:str, shape_path:str,
     geo_shape = gpd.read_file(shape_path)
     ndvi_image = rasterio.open(ndvi_path)
 
+    # print(ndvi_image.crs, geo_shape.crs)
     buffer_name, buffer_distance = buffer_item
 
     # check intersection
@@ -47,6 +48,8 @@ def calculate_donut_buffer(buffer_item:tuple, ndvi_path:str, shape_path:str,
 
     if('MainID' in geo_shape.keys()):
         geo_shape.set_index('MainID',inplace=True)
+    else:
+        raise ValueError(f"Shape file must contain 'MainID'.")
 
     for index, geo in geo_shape.iterrows():
         # Create buffer around point
@@ -75,18 +78,26 @@ def calculate_donut_buffer(buffer_item:tuple, ndvi_path:str, shape_path:str,
             'driver': 'GTiff',
             'height': out_image.shape[1],
             'width': out_image.shape[2],
-            'transform': out_transform,
+            # 'transform': out_transform,
             'nodata': -999,
             'crs': ndvi_image.crs
         })
-
         # Write masked image  to GeoTIFF
         filename = f"{index}_{buffer_name}.tiff"
         if(output_filename_suffix != ""):
             filename = f"{output_filename_suffix}_{filename}"
         output_file = os.path.join(output_path, filename)
-        with rasterio.open(output_file, 'w', **meta) as f:
-            f.write(out_image, window=out_window)
+        try:
+            with rasterio.open(output_file, 'w', **meta) as f:
+                f.write(out_image, window=out_window)
+        except Exception as e:
+            print(out_image.shape)
+            print(buffer_item)
+            print(out_transform)
+            print(meta)
+            raise e
+            
+
 
 def gen_buffer_dict(buffer:float) -> dict:
     import warnings

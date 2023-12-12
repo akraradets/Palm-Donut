@@ -1,10 +1,48 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, redirect
 
 from glob import glob
 import os 
 import shutil
 
+def map(request):
+    return render(request=request, 
+            template_name="map.html", 
+            # context={
+            #     "ndvi_filename":ndvi_filename,
+            #     "shape_filename":shape_filename,
+            #     "output_filename":output_filename,
+            #     "error":error
+            #     }
+            )
+def get_point(request):
+    from django.http import JsonResponse
+    filename = request.GET['filename']
+    base = _get_storage_path(request=request)
+    output_path = os.path.join(base, "output", filename)
+    if(os.path.exists(output_path) == False):
+        return HttpResponseNotFound()
+
+    data = _get_data(output_path)
+
+    response = JsonResponse({"filename": filename, "data":data})
+    return response
+
+def _get_data(output_path:str) -> str:
+    import pandas as pd
+    from pyproj import Proj, transform
+    df = pd.read_csv(output_path)
+    # Define the UTM projection for EPSG 32647
+    utm_proj_32647 = Proj(init='epsg:32647')
+
+    # Define the WGS84 latitude/longitude projection
+    wgs84_projection = Proj(proj='latlong', datum='WGS84')
+
+    # Convert UTM coordinates to latitude and longitude
+    df['lon'], df['lat'] = transform(utm_proj_32647, wgs84_projection, df['x'].values, df['y'].values)
+
+    # Check the first few rows of the modified dataframe
+    return df[['MainID', 'health', 'x', 'y', 'lat', 'lon']].to_dict(orient='records')
 
 def index(request, error:str=""):
     # Check session 
@@ -127,12 +165,12 @@ def remove_shape(request):
 def calculate_donut(request):
     base = _get_storage_path(request=request)
     try:
-        ndvi_file = _get_file_path(request=request, folder='ndvi')
+        ndvi_path = _get_file_path(request=request, folder='ndvi')
     except:
         return index(request=request, error="Missing NDVI image")
 
     try:
-        shape_file_zip = _get_file_path(request=request, folder='shape')
+        shape_path_zip = _get_file_path(request=request, folder='shape')
     except:
         return index(request=request, error="Missing shape file")
     
@@ -140,14 +178,18 @@ def calculate_donut(request):
     # print(request.POST)
     try:
         buffer_distance:float = float(request.POST['buffer-distance'])
-        shape_file = _extract_zip(shape_file_zip, os.path.join(base, "shape"))
+        shape_path = _extract_zip(shape_path_zip, os.path.join(base, "shape"))
+
+        # Reproject point
+        # _reproject_ndvi(ndvi_path=ndvi_path)
+
         buffer_path = os.path.join(base, "buffer")
         if(os.path.exists(buffer_path)):
             shutil.rmtree(buffer_path)
         output_path = os.path.join(base, "output")
         result_path = _work(buffer_distance=buffer_distance, 
-              shape_path=shape_file, 
-              ndvi_path=ndvi_file, 
+              shape_path=shape_path, 
+              ndvi_path=ndvi_path, 
               buffer_path=buffer_path, 
               output_path=output_path)
     except Exception as e:
@@ -156,6 +198,16 @@ def calculate_donut(request):
         return index(request=request, error=str(e))
 
     return redirect("index")
+
+# def _reproject_ndvi(ndvi_path:str):
+#     import rasterio
+#     import rioxarray
+
+#     ndvi_image = rasterio.open(ndvi_path)
+#     if(ndvi_image.read_crs() != rasterio.CRS.from_string("WGS84")):
+#         ndvi_rxa = rioxarray.open_rasterio(ndvi_path)
+#         ndvi_rxa = ndvi_rxa.rio.reproject(dst_crs='WGS84')
+#         ndvi_rxa.rio.to_raster(ndvi_path)
 
 def _work(buffer_distance:float, shape_path:str, ndvi_path:str, buffer_path:str, output_path:str) -> str:
     from .processing.donut import gen_buffer_dict, calculate_donut_buffer_multi_thread
@@ -212,3 +264,4 @@ def _init_storage(folder_name):
     if(os.path.exists(path) == False):
         print(f"create folder {path=}")
         os.makedirs(path)
+
