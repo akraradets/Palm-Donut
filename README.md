@@ -45,6 +45,8 @@ services:
       context: .
       dockerfile: .Dockerfile
     platform: linux/amd64
+    environment:
+      - HOST_URL=localhost
     labels:
       # Allow Traefik to talk with your service
       - traefik.enable=true
@@ -52,7 +54,7 @@ services:
       - traefik.http.services.web-donut.loadbalancer.server.port=80
       # This config you domain name. By default, your subdomain is web-donut
       # If you which to change the subdomain name, you uncomment the below configuration
-      - traefik.http.routers.web-donut.rule=Host(`donut.localhost`)
+      - traefik.http.routers.web-donut.rule=Host(`localhost`)
       # Below is for enable SSL.
       - traefik.http.routers.web-donut.tls=true
       - traefik.http.routers.web-donut.tls.certresolver=production
@@ -71,11 +73,13 @@ networks:
 
 #### 2.2 Deploy without `Traefik`
 
-To deploy with `Traefik`, you can simply just remove `services.web.labels`, `services.web.networks`, and `networks` sections in the `docker-compose.yaml`.
-Then, to access the web, you will have to forward the port.
+To deploy without `Traefik`, you can simply just remove `services.web.labels`, `services.web.networks`, and `networks` sections in the `docker-compose.yaml`.
+Then, to access the web, you will have to perform a port forwarding.
 Because `pipenv run python manage.py runserver 0.0.0.0:80` will run `Django` server at port 80 in the container, we will forward the port of the Host to 80 of the container.
 This is done via the section `services.web.ports`.
 In the example below (or in `docker-compose-noTraefik.yaml`), we forward the port 8080 of Host to port 80 of container (host_port:container_port) (8080:80).
+Finally, you will have to change the `HOST_URL` in the section `services.web.environment` to the url of your Host.
+This value will be added to the `ALLOWED_HOSTS` of the `Django` project.
 
 ```yaml
 version: '3.9'
@@ -91,9 +95,19 @@ services:
       dockerfile: .Dockerfile
     # compatible with x86_64 architecture
     platform: linux/amd64
+    # This will be added to `ALLOWED_HOSTS`
+    environment:
+      - HOST_URL=localhost
     # forward the port (host_port:container_port)
     ports:
       - 8080:80
+```
+
+Save the file as `docker-compose.yaml`.
+Now, you can run 
+
+```sh
+docker compose up -d --build
 ```
 
 ### 3. Session?

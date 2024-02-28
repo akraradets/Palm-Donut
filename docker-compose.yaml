@@ -7,6 +7,8 @@ services:
       context: .
       dockerfile: .Dockerfile
     platform: linux/amd64
+    environment:
+      - HOST_URL=localhost
     labels:
       # Allow Traefik to talk with your service
       - traefik.enable=true
