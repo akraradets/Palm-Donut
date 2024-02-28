@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  web:
+    command: pipenv run python manage.py runserver 0.0.0.0:80
+    image: donut-web:latest
+    build:
+      context: .
+      dockerfile: .Dockerfile
+    platform: linux/amd64
+    ports:
+      - 8080:80
+

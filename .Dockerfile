@@ -1,5 +1,14 @@
 FROM python:3.10.12-bookworm
 
+ARG WORKDIR=/root/project
+WORKDIR ${WORKDIR}
+
+# Remove printing buffer to stdout, stderr
+# https://stackoverflow.com/questions/59812009/what-is-the-use-of-pythonunbuffered-in-docker-file
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=${WORKDIR}
+ENV PIPENV_VENV_IN_PROJECT=1
+
 ARG DEBIAN_FRONTEND=noninteractive
 # Timezone
 ENV TZ="Asia/Bangkok"
@@ -18,8 +27,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 
 
-WORKDIR /root/project
-
 RUN pip3 install --upgrade pip
 RUN pip3 install pipenv
 # For cv2
@@ -30,8 +37,12 @@ ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 # RUN pipenv install GDAL==3.6.2
 
-COPY ./project/Pipfile ./project/Pipfile.lock /root/project/
-RUN pipenv install
+# COPY ./project/Pipfile ./project/Pipfile.lock /root/project/
+RUN --mount=type=bind,source=./project/Pipfile,target=/root/project/Pipfile \
+    --mount=type=bind,source=./project/Pipfile.lock,target=/root/project/Pipfile.lock \
+    pipenv install
+COPY ./project ${WORKDIR}
+
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-CMD tail -f /dev/null
+CMD pipenv run python manage.py runserver 0.0.0.0:80

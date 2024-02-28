@@ -2,13 +2,11 @@ version: '3.9'
 services:
   web:
     command: pipenv run python manage.py runserver 0.0.0.0:80
-    image: akraradets/donut-web:v0.0.1
+    image: donut-web:latest
     build:
       context: .
       dockerfile: .Dockerfile
-    volumes:
-      - ./project:/root/project
-      # - vscode-web:/root/.vscode-server
+    platform: linux/amd64
     labels:
       # Allow Traefik to talk with your service
       - traefik.enable=true
